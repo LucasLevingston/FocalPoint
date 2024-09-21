@@ -1,101 +1,101 @@
-import Image from "next/image";
+'use client';
+
+import Header from '../components/Header';
+import TasksSection from '../components/TasksSection';
+import { useState, useEffect } from 'react';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { newTaskSchema } from '../schemas/newTaskSchema';
+import { z } from 'zod';
+import toast from 'react-hot-toast';
+import { useUser } from '@/hooks/user-hooks';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const { user, getUser, setTasks } = useUser();
+  const [newTaskName, setNewTaskName] = useState('');
+  const [error, setError] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  useEffect(() => {
+    const fetchData = async () => {
+      await getUser();
+    };
+
+    fetchData();
+  }, [getUser]);
+
+  const handleAddTask = () => {
+    try {
+      newTaskSchema.parse({ name: newTaskName });
+
+      const newTask = {
+        id: user.tasks.length + 1,
+        name: newTaskName,
+        check: false,
+      };
+
+      setTasks([...user.tasks, newTask]);
+
+      setNewTaskName('');
+      setError('');
+      setIsDialogOpen(false);
+      toast.success('Tarefa adicionada com sucesso!');
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        setError(error.errors[0].message);
+      }
+    }
+  };
+
+  return (
+    <div className="grid bg-white  items-center justify-items-center sm:gap-16 gap-4 sm:py-6 p-6 sm:px-14 ">
+      <Header />
+      <div className="min-h-screen flex flex-col gap-6">
+        <TasksSection tasks={user.tasks} setTasks={setTasks} />{' '}
+        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <AlertDialogTrigger
+            className="sm:w-[450px] w-[272px] justify-center flex items-center text-white bg-gradient-to-r from-[#0796D3] to-[#53C0F0] rounded-md h-[51px]"
+            onClick={() => setIsDialogOpen(true)}
           >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            Adicionar nova tarefa
+          </AlertDialogTrigger>
+          <AlertDialogContent className="bg-white shadow-[#1018282E] sm:w-[450px] w-full sm:h-[286px] h-screen gap-8 flex flex-col">
+            <AlertDialogTitle className="text-2xl">Nova tarefa</AlertDialogTitle>
+            <div className="flex flex-col gap-2">
+              <p className="text-black font-semibold">Título</p>
+              <input
+                value={newTaskName}
+                onChange={(e) => setNewTaskName(e.target.value)}
+                placeholder="Digite"
+                className={`p-4 gap-4 border rounded-lg w-full ${
+                  error ? 'border-red-500' : 'border-[#D7DDE9]'
+                }`}
+              />
+              {error && <p className="text-red-500 mt-1">{error}</p>}
+            </div>
+            <div className="w-full flex sm:flex-row flex-col-reverse gap-4 justify-center">
+              <AlertDialogCancel
+                className="sm:w-[185px] w-full h-[51px] bg-[#E7EEFB] border-[#E7EEFB]"
+                onClick={() => setIsDialogOpen(false)}
+              >
+                Cancelar
+              </AlertDialogCancel>
+              <Button
+                className="bg-gradient-to-r from-[#0796D3] to-[#53C0F0] sm:w-[185px] w-full h-[51px]"
+                onClick={handleAddTask}
+              >
+                Adicionar
+              </Button>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
 }
